@@ -3,4 +3,4 @@
 * solutions are written in Golang.
 * hopefully I don't get lazy :)
 
-If you're wondering what's this about, [click here](adventofcode.com).
+If you're wondering what's this about, [click here](https://www.adventofcode.com).

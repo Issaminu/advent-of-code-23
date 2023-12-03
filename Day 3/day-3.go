@@ -1,14 +1,18 @@
 package main
 
 import (
+	"crypto/md5"
+	"encoding/hex"
 	"fmt"
 	"os"
 	"strconv"
 	"strings"
 )
 
+var gearAdjacentParts map[string][]int // Key: hash of gear coordinates, Value: adjacent part numbers
+
 func main() {
-	//partOne()
+	partOne()
 	partTwo()
 }
 
@@ -60,20 +64,23 @@ func partTwo() {
 		panic(err)
 	}
 	lines := strings.Split(string(file), "\n")
-	var matrix [][]string
 
-	var gears [][]Coordinates
+	var matrix [][]string
+	gearAdjacentParts = make(map[string][]int)
+	sum := 0
 
 	for _, str := range lines {
 		var charSlice []string
 		for _, char := range str {
 			charSlice = append(charSlice, string(char))
 		}
+		charSlice = append(charSlice, ".")
 		matrix = append(matrix, charSlice)
 	}
-	sum := 0
+
 	start := Coordinates{-1, -1}
 	end := Coordinates{-1, -1}
+
 	for i := 0; i < len(matrix); i++ {
 		for j := 0; j < len(matrix[i]); j++ {
 			if matrix[i][j] >= "0" && matrix[i][j] <= "9" {
@@ -85,19 +92,26 @@ func partTwo() {
 				}
 			} else {
 				if start.x != -1 && end.x != -1 {
-					if isPartNumber(start, end, matrix) {
-						if isPartNearGear(start, end, matrix) {
-
-						}
-						//number := coordinatesToNumber(start, end, matrix)
-						sum += number
+					if isAdjacentToGear(start, end, matrix) {
+						checkAdjacentsForGear(start, end, matrix)
 					}
-					start = Coordinates{-1, -1}
-					end = Coordinates{-1, -1}
 				}
+				start = Coordinates{-1, -1}
+				end = Coordinates{-1, -1}
 			}
 		}
 	}
+
+	for _, valueArray := range gearAdjacentParts {
+		if len(valueArray) == 2 {
+			multiplication := 1
+			for _, value := range valueArray {
+				multiplication *= value
+			}
+			sum += multiplication
+		}
+	}
+
 	println(sum)
 }
 
@@ -113,6 +127,16 @@ func (c Coordinates) String() string {
 func isPartNumber(start Coordinates, end Coordinates, matrix [][]string) bool {
 	adjacentSymbols := getAdjacentSymbols(Coordinates{start.x, start.y}, Coordinates{end.x, end.y}, matrix)
 	return len(adjacentSymbols) > 0
+}
+
+func isAdjacentToGear(start Coordinates, end Coordinates, matrix [][]string) bool {
+	adjacentSymbols := getAdjacentSymbols(Coordinates{start.x, start.y}, Coordinates{end.x, end.y}, matrix)
+	for _, coords := range adjacentSymbols {
+		if matrix[coords.x][coords.y] == "*" {
+			return true
+		}
+	}
+	return false
 }
 
 func isOutOfBounds(coords Coordinates, matrix [][]string) bool {
@@ -147,12 +171,25 @@ func coordinatesToNumber(start Coordinates, end Coordinates, matrix [][]string) 
 	return fullNumber
 }
 
-func isPartNearGear(start Coordinates, end Coordinates, matrix [][]string) bool {
+func checkAdjacentsForGear(start Coordinates, end Coordinates, matrix [][]string) {
 	adjacentSymbols := getAdjacentSymbols(Coordinates{start.x, start.y}, Coordinates{end.x, end.y}, matrix)
 	for _, coords := range adjacentSymbols {
 		if matrix[coords.x][coords.y] == "*" {
-			return true
+			addCoordinate(coords, coordinatesToNumber(start, end, matrix))
 		}
 	}
-	return false
+}
+
+func hashCoordinates(coord Coordinates) string {
+	coordString := fmt.Sprintf("%d-%d", coord.x, coord.y)
+	hasher := md5.New()
+	hasher.Write([]byte(coordString))
+	hash := hex.EncodeToString(hasher.Sum(nil))
+	return hash
+}
+
+// Append `newPart` as new item in the Value array of the Key `gear` in the `gearAdjacentParts` map
+func addCoordinate(gear Coordinates, newPart int) {
+	hash := hashCoordinates(gear)
+	gearAdjacentParts[hash] = append(gearAdjacentParts[hash], newPart)
 }

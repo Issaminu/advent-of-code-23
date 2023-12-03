@@ -20,6 +20,48 @@ func partOne() {
 	lines := strings.Split(string(file), "\n")
 	var matrix [][]string
 
+	for _, str := range lines {
+		var charSlice []string
+		for _, char := range str {
+			charSlice = append(charSlice, string(char))
+		}
+		matrix = append(matrix, charSlice)
+	}
+	gearRatioSum := 0
+	start := Coordinates{-1, -1}
+	end := Coordinates{-1, -1}
+	for i := 0; i < len(matrix); i++ {
+		for j := 0; j < len(matrix[i]); j++ {
+			if matrix[i][j] >= "0" && matrix[i][j] <= "9" {
+				if start.x == -1 {
+					start = Coordinates{i, j}
+					end = Coordinates{i, j}
+				} else {
+					end = Coordinates{i, j}
+				}
+			} else {
+				if start.x != -1 && end.x != -1 {
+					if isPartNumber(start, end, matrix) {
+						number := coordinatesToNumber(start, end, matrix)
+						gearRatioSum += number
+					}
+					start = Coordinates{-1, -1}
+					end = Coordinates{-1, -1}
+				}
+			}
+		}
+	}
+	println(gearRatioSum)
+}
+
+func partTwo() {
+	file, err := os.ReadFile("./Day 3/day3-input.txt")
+	if err != nil {
+		panic(err)
+	}
+	lines := strings.Split(string(file), "\n")
+	var matrix [][]string
+
 	var gears [][]Coordinates
 
 	for _, str := range lines {
@@ -57,48 +99,6 @@ func partOne() {
 		}
 	}
 	println(sum)
-}
-
-func partTwo() {
-	file, err := os.ReadFile("./Day 3/day3-input.txt")
-	if err != nil {
-		panic(err)
-	}
-	lines := strings.Split(string(file), "\n")
-	var matrix [][]string
-
-	for _, str := range lines {
-		var charSlice []string
-		for _, char := range str {
-			charSlice = append(charSlice, string(char))
-		}
-		matrix = append(matrix, charSlice)
-	}
-	gearRatioSum := 0
-	start := Coordinates{-1, -1}
-	end := Coordinates{-1, -1}
-	for i := 0; i < len(matrix); i++ {
-		for j := 0; j < len(matrix[i]); j++ {
-			if matrix[i][j] >= "0" && matrix[i][j] <= "9" {
-				if start.x == -1 {
-					start = Coordinates{i, j}
-					end = Coordinates{i, j}
-				} else {
-					end = Coordinates{i, j}
-				}
-			} else {
-				if start.x != -1 && end.x != -1 {
-					if isPartNumber(start, end, matrix) {
-						number := coordinatesToNumber(start, end, matrix)
-						gearRatioSum += number
-					}
-					start = Coordinates{-1, -1}
-					end = Coordinates{-1, -1}
-				}
-			}
-		}
-	}
-	println(gearRatioSum)
 }
 
 type Coordinates struct {

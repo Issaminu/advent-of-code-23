@@ -21,8 +21,8 @@ func partOne() {
 	if cards[lastIndex][len(cards[lastIndex])-1] != '\n' {
 		cards[lastIndex] += "\n"
 	}
-	sum := 0
 
+	sum := 0
 	for _, card := range cards {
 		wins := getWinnings(card)
 		if wins > 0 {
